@@ -1,0 +1,2503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Small Multiples: Rose Charts with Sonification</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid */
+            gap: 20px; /* Spacing between items */
+            justify-items: center; /* Center items horizontally */
+            align-items: start; /* Align items to the top */
+            box-sizing: border-box;
+            background-color: #F8F7E3;
+        }
+
+        .chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-sizing: border-box;
+            background: #F8F7E3;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0);
+        }
+
+        .chart-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        svg {
+            display: block;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            background-color: #ffffff;
+            border: 2px solid #FFD099;
+            border-radius: 8px;
+            color: #333;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #FFD099;
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 5px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="tooltip"></div>
+    <script>
+        const dummyData = [
+            {
+                "county": "ALBA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 16,
+        "value": 7.5
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 16,
+        "value": 3.7
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 16,
+        "value": 3837
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 10,
+        "value": 262.98
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 13,
+        "value": 2.89
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 23,
+        "value": 2.04
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 9,
+        "value": 61542.22
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 11,
+        "value": 31.98
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 29,
+        "value": 15.28
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 30,
+        "value": 18.78
+      }
+    ]
+  },
+  {
+    "county": "ARAD",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 12,
+        "value": 8.1
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 29,
+        "value": 1.1
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 17,
+        "value": 3823
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 25,
+        "value": 238.89
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 12,
+        "value": 3.77
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 12,
+        "value": 3.12
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 11,
+        "value": 56379.48
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 9,
+        "value": 35.26
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 11,
+        "value": 180.52
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 19,
+        "value": 36.92
+      }
+    ]
+  },
+  {
+    "county": "ARGES",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 20,
+        "value": 6.8
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 17,
+        "value": 3.5
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 9,
+        "value": 4106
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 13,
+        "value": 255.59
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 15,
+        "value": 2.51
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 13,
+        "value": 2.8
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 12,
+        "value": 53396.4
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 10,
+        "value": 34.68
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 5,
+        "value": 554
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 26,
+        "value": 22.61
+      }
+    ]
+  },
+  {
+    "county": "BACAU",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 13,
+        "value": 8
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 23,
+        "value": 2.8
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 14,
+        "value": 3948
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 28,
+        "value": 231.24
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 20,
+        "value": 1.75
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 30,
+        "value": 1.79
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 33,
+        "value": 39970.66
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 31,
+        "value": 23.78
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 38,
+        "value": 3.06
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 25,
+        "value": 24.64
+      }
+    ]
+  },
+  {
+    "county": "BIHOR",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 4,
+        "value": 9.2
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 28,
+        "value": 1.2
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 23,
+        "value": 3609
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 22,
+        "value": 241.93
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 9,
+        "value": 5.05
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 7,
+        "value": 4.67
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 18,
+        "value": 48649.24
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 6,
+        "value": 40.78
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 26,
+        "value": 26.78
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 16,
+        "value": 39.84
+      }
+    ]
+  },
+  {
+    "county": "BISTRITA-NASAUD",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 4,
+        "value": 9.2
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 19,
+        "value": 3.2
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 36,
+        "value": 3447
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 38,
+        "value": 204.52
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 25,
+        "value": 0.77
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 31,
+        "value": 1.72
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 30,
+        "value": 42288.9
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 13,
+        "value": 31.4
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 12,
+        "value": 93.48
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 37,
+        "value": 8.95
+      }
+    ]
+  },
+  {
+    "county": "BOTOSANI",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 10,
+        "value": 8.3
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 21,
+        "value": 3
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 40,
+        "value": 3430
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 40,
+        "value": 196.95
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 39,
+        "value": 0
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 32,
+        "value": 1.7
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 40,
+        "value": 30831.72
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 42,
+        "value": 13.81
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 39,
+        "value": 1.62
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 10,
+        "value": 55.82
+      }
+    ]
+  },
+  {
+    "county": "BRASOV",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 6,
+        "value": 8.9
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 26,
+        "value": 2.2
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 6,
+        "value": 4404
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 7,
+        "value": 265.53
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 7,
+        "value": 6.27
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 10,
+        "value": 3.68
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 4,
+        "value": 70349.96
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 5,
+        "value": 44.8
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 8,
+        "value": 331.85
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 35,
+        "value": 11.26
+      }
+    ]
+  },
+  {
+    "county": "BRAILA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 24,
+        "value": 6.2
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 19,
+        "value": 3.2
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 37,
+        "value": 3446
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 6,
+        "value": 273.96
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 30,
+        "value": 0.41
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 24,
+        "value": 2.04
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 21,
+        "value": 45493.17
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 27,
+        "value": 25.61
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 28,
+        "value": 18.76
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 5,
+        "value": 73.31
+      }
+    ]
+  },
+  {
+    "county": "BUZAU",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 21,
+        "value": 6.7
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 8,
+        "value": 5.3
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 25,
+        "value": 3595
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 8,
+        "value": 265.3
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 31,
+        "value": 0.4
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 35,
+        "value": 1.55
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 28,
+        "value": 43136.43
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 25,
+        "value": 26.79
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 27,
+        "value": 21.88
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 14,
+        "value": 43.24
+      }
+    ]
+  },
+  {
+    "county": "CARAS-SEVERIN",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 22,
+        "value": 6.5
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 24,
+        "value": 2.6
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 28,
+        "value": 3573
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 3,
+        "value": 276.91
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 23,
+        "value": 0.8
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 22,
+        "value": 2.09
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 24,
+        "value": 44945.83
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 36,
+        "value": 21.22
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 41,
+        "value": 0
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 39,
+        "value": 8.57
+      }
+    ]
+  },
+  {
+    "county": "CLUJ",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 7,
+        "value": 8.8
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 28,
+        "value": 1.2
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 2,
+        "value": 5344
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 12,
+        "value": 255.84
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 1,
+        "value": 15.82
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 3,
+        "value": 6.49
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 2,
+        "value": 86443.8
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 3,
+        "value": 58.83
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 6,
+        "value": 523.22
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 32,
+        "value": 16.27
+      }
+    ]
+  },
+  {
+    "county": "CONSTANTA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 12,
+        "value": 8.1
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 25,
+        "value": 2.3
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 11,
+        "value": 4028
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 29,
+        "value": 227.28
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 8,
+        "value": 5.44
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 8,
+        "value": 4.41
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 6,
+        "value": 67985.23
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 7,
+        "value": 39.35
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 14,
+        "value": 75.01
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 9,
+        "value": 62.89
+      }
+    ]
+  },
+  {
+    "county": "COVASNA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 9,
+        "value": 8.4
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 13,
+        "value": 4
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 31,
+        "value": 3529
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 31,
+        "value": 224.75
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 33,
+        "value": 0.34
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 21,
+        "value": 2.09
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 23,
+        "value": 44952.34
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 32,
+        "value": 23.29
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 20,
+        "value": 45.08
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 28,
+        "value": 21.39
+      }
+    ]
+  },
+  {
+    "county": "CALARASI",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 14,
+        "value": 7.9
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 10,
+        "value": 4.8
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 24,
+        "value": 3602
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 37,
+        "value": 207.05
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 34,
+        "value": 0.18
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 40,
+        "value": 1.25
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 39,
+        "value": 34513.94
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 38,
+        "value": 19.9
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 22,
+        "value": 37.51
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 3,
+        "value": 77.85
+      }
+    ]
+  },
+  {
+    "county": "DOLJ",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 15,
+        "value": 7.6
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 3,
+        "value": 7.3
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 12,
+        "value": 4018
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 23,
+        "value": 241.44
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 6,
+        "value": 6.39
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 6,
+        "value": 6.14
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 19,
+        "value": 47665.54
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 18,
+        "value": 29.35
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 13,
+        "value": 85.88
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 7,
+        "value": 64.43
+      }
+    ]
+  },
+  {
+    "county": "DAMBOVITA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 18,
+        "value": 7.2
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 22,
+        "value": 2.9
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 21,
+        "value": 3672
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 30,
+        "value": 225.93
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 21,
+        "value": 1.54
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 42,
+        "value": 1.22
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 27,
+        "value": 43416.9
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 34,
+        "value": 21.91
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 17,
+        "value": 55.16
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 18,
+        "value": 38.49
+      }
+    ]
+  },
+  {
+    "county": "GALATI",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 17,
+        "value": 7.4
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 6,
+        "value": 6
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 18,
+        "value": 3822
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 14,
+        "value": 254.73
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 10,
+        "value": 4.9
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 14,
+        "value": 2.5
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 29,
+        "value": 42838.09
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 24,
+        "value": 27.5
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 19,
+        "value": 45.9
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 6,
+        "value": 65.08
+      }
+    ]
+  },
+  {
+    "county": "GIURGIU",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 17,
+        "value": 7.4
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 18,
+        "value": 3.3
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 19,
+        "value": 3772
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 39,
+        "value": 199.32
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 39,
+        "value": 0
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 41,
+        "value": 1.23
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 41,
+        "value": 29426.41
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 28,
+        "value": 24.51
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 37,
+        "value": 4.37
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 2,
+        "value": 78.37
+      }
+    ]
+  },
+  {
+    "county": "GORJ",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 23,
+        "value": 6.4
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 17,
+        "value": 3.5
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 13,
+        "value": 3975
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 11,
+        "value": 259.03
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 14,
+        "value": 2.72
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 15,
+        "value": 2.45
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 10,
+        "value": 57514.64
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 26,
+        "value": 26.45
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 32,
+        "value": 7.76
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 34,
+        "value": 13.48
+      }
+    ]
+  },
+  {
+    "county": "HARGHITA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 4,
+        "value": 9.2
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 11,
+        "value": 4.4
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 34,
+        "value": 3490
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 21,
+        "value": 244.85
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 24,
+        "value": 0.77
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 20,
+        "value": 2.1
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 26,
+        "value": 44280.21
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 21,
+        "value": 28.36
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 35,
+        "value": 6.64
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 41,
+        "value": 6.68
+      }
+    ]
+  },
+  {
+    "county": "HUNEDOARA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 24,
+        "value": 6.2
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 13,
+        "value": 4
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 35,
+        "value": 3474
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 1,
+        "value": 337.75
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 18,
+        "value": 1.87
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 11,
+        "value": 3.29
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 20,
+        "value": 47526.84
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 19,
+        "value": 29.32
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 15,
+        "value": 70.22
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 40,
+        "value": 7.04
+      }
+    ]
+  },
+  {
+    "county": "IALOMITA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 9,
+        "value": 8.4
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 9,
+        "value": 5
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 22,
+        "value": 3618
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 35,
+        "value": 210.04
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 39,
+        "value": 0
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 39,
+        "value": 1.42
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 31,
+        "value": 41602.07
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 37,
+        "value": 20.85
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 40,
+        "value": 1.05
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 1,
+        "value": 81.32
+      }
+    ]
+  },
+  {
+    "county": "IASI",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 3,
+        "value": 9.6
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 20,
+        "value": 3.1
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 5,
+        "value": 4568
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 41,
+        "value": 194.08
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 3,
+        "value": 10.92
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 5,
+        "value": 6.34
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 14,
+        "value": 51890.22
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 15,
+        "value": 30.25
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 7,
+        "value": 377.9
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 12,
+        "value": 46.54
+      }
+    ]
+  },
+  {
+    "county": "ILFOV",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 14,
+        "value": 7.9
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 32,
+        "value": 0.4
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 4,
+        "value": 4602
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 42,
+        "value": 135.23
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 37,
+        "value": 0.07
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 26,
+        "value": 1.97
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 5,
+        "value": 68160.02
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 2,
+        "value": 63.09
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 3,
+        "value": 1283.34
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 17,
+        "value": 39.29
+      }
+    ]
+  },
+  {
+    "county": "MARAMURES",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 14,
+        "value": 7.9
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 27,
+        "value": 1.9
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 29,
+        "value": 3562
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 20,
+        "value": 245.04
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 17,
+        "value": 1.88
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 19,
+        "value": 2.13
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 25,
+        "value": 44517.31
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 16,
+        "value": 30.2
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 33,
+        "value": 6.95
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 38,
+        "value": 8.9
+      }
+    ]
+  },
+  {
+    "county": "MEHEDINTI",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 26,
+        "value": 5.9
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 4,
+        "value": 6.8
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 33,
+        "value": 3502
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 18,
+        "value": 250.15
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 19,
+        "value": 1.78
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 17,
+        "value": 2.21
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 32,
+        "value": 41545.17
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 41,
+        "value": 17.36
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 41,
+        "value": 0
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 20,
+        "value": 31.99
+      }
+    ]
+  },
+  {
+    "county": "BUCHAREST",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 8,
+        "value": 8.7
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 30,
+        "value": 1
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 1,
+        "value": 6053
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 5,
+        "value": 274.73
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 2,
+        "value": 15.26
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 1,
+        "value": 10.45
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 1,
+        "value": 162900.92
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 1,
+        "value": 74.07
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 1,
+        "value": 1553.76
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 42,
+        "value": 0.3
+      }
+    ]
+  },
+  {
+    "county": "MURES",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 6,
+        "value": 8.9
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 19,
+        "value": 3.2
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 10,
+        "value": 4041
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 19,
+        "value": 247.41
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 11,
+        "value": 3.83
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 4,
+        "value": 6.39
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 13,
+        "value": 52555.45
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 12,
+        "value": 31.52
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 21,
+        "value": 39.11
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 22,
+        "value": 28.8
+      }
+    ]
+  },
+  {
+    "county": "NEAMT",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 15,
+        "value": 7.6
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 14,
+        "value": 3.9
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 30,
+        "value": 3542
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 15,
+        "value": 252.88
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 38,
+        "value": 0.04
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 28,
+        "value": 1.88
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 35,
+        "value": 39275.14
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 33,
+        "value": 22.89
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 18,
+        "value": 47.89
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 24,
+        "value": 27.08
+      }
+    ]
+  },
+  {
+    "county": "OLT",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 20,
+        "value": 6.8
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 5,
+        "value": 6.1
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 15,
+        "value": 3877
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 24,
+        "value": 241.2
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 32,
+        "value": 0.35
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 25,
+        "value": 2
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 34,
+        "value": 39512.09
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 35,
+        "value": 21.74
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 23,
+        "value": 36.11
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 8,
+        "value": 63.01
+      }
+    ]
+  },
+  {
+    "county": "PRAHOVA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 19,
+        "value": 7
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 26,
+        "value": 2.2
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 8,
+        "value": 4162
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 4,
+        "value": 274.89
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 22,
+        "value": 1.38
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 29,
+        "value": 1.79
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 8,
+        "value": 61662.78
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 14,
+        "value": 31.09
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 25,
+        "value": 28.41
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 21,
+        "value": 29.66
+      }
+    ]
+  },
+  {
+    "county": "SATU MARE",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 13,
+        "value": 8
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 15,
+        "value": 3.8
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 27,
+        "value": 3587
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 32,
+        "value": 222.15
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 29,
+        "value": 0.46
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 27,
+        "value": 1.88
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 22,
+        "value": 45041.04
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 23,
+        "value": 27.51
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 30,
+        "value": 11.23
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 11,
+        "value": 51.28
+      }
+    ]
+  },
+  {
+    "county": "SIBIU",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 5,
+        "value": 9
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 25,
+        "value": 2.3
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 7,
+        "value": 4392
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 16,
+        "value": 251.62
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 5,
+        "value": 6.55
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 9,
+        "value": 3.99
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 7,
+        "value": 63344.92
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 8,
+        "value": 38.15
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 4,
+        "value": 1203.35
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 33,
+        "value": 13.84
+      }
+    ]
+  },
+  {
+    "county": "SUCEAVA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 1,
+        "value": 11.2
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 7,
+        "value": 5.5
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 26,
+        "value": 3588
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 36,
+        "value": 208.59
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 16,
+        "value": 2.5
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 36,
+        "value": 1.54
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 38,
+        "value": 35492.76
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 29,
+        "value": 24.47
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 24,
+        "value": 29.92
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 29,
+        "value": 20.97
+      }
+    ]
+  },
+  {
+    "county": "SALAJ",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 2,
+        "value": 10
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 9,
+        "value": 5
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 20,
+        "value": 3690
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 17,
+        "value": 251.03
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 28,
+        "value": 0.48
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 18,
+        "value": 2.15
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 15,
+        "value": 51790.41
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 17,
+        "value": 29.49
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 31,
+        "value": 9.16
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 31,
+        "value": 16.89
+      }
+    ]
+  },
+  {
+    "county": "TELEORMAN",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 25,
+        "value": 6
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 2,
+        "value": 8.3
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 41,
+        "value": 3353
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 9,
+        "value": 264.63
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 26,
+        "value": 0.62
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 37,
+        "value": 1.47
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 36,
+        "value": 38086.34
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 39,
+        "value": 19.53
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 36,
+        "value": 5.89
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 4,
+        "value": 76.38
+      }
+    ]
+  },
+  {
+    "county": "TIMIS",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 9,
+        "value": 8.4
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 31,
+        "value": 0.8
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 3,
+        "value": 4910
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 27,
+        "value": 232.33
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 4,
+        "value": 9.71
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 2,
+        "value": 8.84
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 3,
+        "value": 77395.8
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 4,
+        "value": 46.29
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 2,
+        "value": 1326.59
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 15,
+        "value": 41.98
+      }
+    ]
+  },
+  {
+    "county": "TULCEA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 21,
+        "value": 6.7
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 13,
+        "value": 4
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 32,
+        "value": 3525
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 26,
+        "value": 235.98
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 35,
+        "value": 0.17
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 33,
+        "value": 1.69
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 16,
+        "value": 51696.21
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 20,
+        "value": 28.49
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 9,
+        "value": 214.72
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 23,
+        "value": 27.52
+      }
+    ]
+  },
+  {
+    "county": "VASLUI",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 11,
+        "value": 8.2
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 1,
+        "value": 8.4
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 38,
+        "value": 3446
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 34,
+        "value": 216.38
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 39,
+        "value": 0
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 38,
+        "value": 1.43
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 42,
+        "value": 28032.87
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 40,
+        "value": 17.84
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 16,
+        "value": 56.95
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 13,
+        "value": 43.86
+      }
+    ]
+  },
+  {
+    "county": "VRANCEA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 16,
+        "value": 7.5
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 12,
+        "value": 4.3
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 42,
+        "value": 3344
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 33,
+        "value": 217.79
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 36,
+        "value": 0.14
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 34,
+        "value": 1.56
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 37,
+        "value": 37900.25
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 30,
+        "value": 24.17
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 34,
+        "value": 6.93
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 27,
+        "value": 22.56
+      }
+    ]
+  },
+  {
+    "county": "VALCEA",
+    "rankings": [
+      {
+        "indicator": "Birth Rate (Live Births per 1,000 Inhabitants)",
+        "rank": 26,
+        "value": 5.9
+      },
+      {
+        "indicator": "Unemployment Rate (%)",
+        "rank": 18,
+        "value": 3.3
+      },
+      {
+        "indicator": "Average Net Salary (Lei)",
+        "rank": 39,
+        "value": 3435
+      },
+      {
+        "indicator": "Number of Pensioners per 1,000 Inhabitants",
+        "rank": 2,
+        "value": 282.23
+      },
+      {
+        "indicator": "Higher Education Graduates (Bachelor’s Degree) per 1,000 Inhabitants",
+        "rank": 27,
+        "value": 0.51
+      },
+      {
+        "indicator": "Doctors per 1,000 Inhabitants",
+        "rank": 16,
+        "value": 2.36
+      },
+      {
+        "indicator": "GDP per Capita",
+        "rank": 17,
+        "value": 48746.24
+      },
+      {
+        "indicator": "Enterprises per 1,000 Inhabitants",
+        "rank": 22,
+        "value": 27.55
+      },
+      {
+        "indicator": "Research Expenditures per Capita (Lei)",
+        "rank": 10,
+        "value": 198.47
+      },
+      {
+        "indicator": "% Cultivated Area / County Area",
+        "rank": 36,
+        "value": 9.52
+      }
+    ]
+            }
+        ];
+
+        const radius = 90;
+        const outerSegments = 42;
+        const colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([outerSegments, 1]); // Reversed domain
+        const tooltip = d3.select(".tooltip");
+
+        // Create a container for each county chart
+        const container = d3.select("body")
+            .selectAll(".chart-container")
+            .data(dummyData)
+            .enter()
+            .append("div")
+            .attr("class", "chart-container");
+
+        // Add a title for each chart
+        container.append("div")
+            .attr("class", "chart-title")
+            .text(d => d.county);
+
+        // Add an SVG for each chart
+        const svg = container.append("svg")
+            .attr("width", 2 * radius + 30)
+            .attr("height", 2 * radius + 30)
+            .append("g")
+            .attr("transform", `translate(${radius + 15},${radius + 15})`);
+
+        // Add a Play button for each chart
+        container.append("button")
+            .text("Play")
+            .on("click", function(event, d) {
+                playSonification(d, this);
+            });
+
+        // Draw each rose chart
+        svg.each(function(d) {
+            const sectionGroup = d3.select(this);
+
+            d.rankings.forEach((ranking, i) => {
+                const section = sectionGroup.append("g")
+                    .attr("class", `section-${i}`)
+                    .style("cursor", "pointer"); // Set cursor to pointer on hover
+
+                const startAngle = (i / d.rankings.length) * 2 * Math.PI;
+                const endAngle = ((i + 1) / d.rankings.length) * 2 * Math.PI;
+
+                for (let j = 0; j < outerSegments; j++) {
+                    const isColored = j < ranking.rank;
+                    section.append("path")
+                        .datum({ startAngle, endAngle, ...ranking, sectionIndex: i, segmentIndex: j })
+                        .attr("d", d3.arc()
+                            .innerRadius(radius * (0.2 + j / outerSegments))
+                            .outerRadius(radius * (0.2 + (j + 1) / outerSegments))
+                            .startAngle(startAngle)
+                            .endAngle(endAngle)
+                        )
+                        .attr("fill", isColored ? colorScale(j + 1) : "#F8F7E3")
+                        .attr("stroke", "#E3E3E3")
+                        .attr("stroke-width", 0.4);
+                }
+
+                section
+                    .on("mouseover", function(event) {
+                        tooltip.style("opacity", 1)
+                            .html(`<b>${ranking.indicator}:</b> ${ranking.value}<br><b>Poziție în ierarhia națională:</b> ${ranking.rank}`)
+                            .style("left", `${event.pageX + 10}px`)
+                            .style("top", `${event.pageY + 10}px`);
+
+                        // Fade other sections
+                        sectionGroup.selectAll("g")
+                            .attr("opacity", 0.3);
+                        d3.select(this).attr("opacity", 1); // Highlight the hovered section
+                    })
+                    .on("mouseout", function() {
+                        tooltip.style("opacity", 0);
+
+                        // Restore opacity for all sections
+                        sectionGroup.selectAll("g")
+                            .attr("opacity", 1);
+                    });
+            });
+        });
+
+        const playSonification = (data, button) => {
+            const svg = d3.select(button.previousElementSibling).select("g");
+
+            const highlightSegment = (sectionIndex, rank) => {
+                svg.selectAll("path")
+                    .attr("stroke", d =>
+                        d.sectionIndex === sectionIndex && d.segmentIndex === rank - 1
+                            ? "#FFFFFF"
+                            : "#E3E3E3"
+                    )
+                    .attr("stroke-width", d =>
+                        d.sectionIndex === sectionIndex && d.segmentIndex === rank - 1
+                            ? 2.5
+                            : 0.5
+                    );
+            };
+
+            data.rankings.forEach((ranking, sectionIndex) => {
+                setTimeout(() => {
+                    highlightSegment(sectionIndex, ranking.rank);
+
+                    const audio = new Audio(`./mp3s/${ranking.rank}.mp3`);
+                    audio.currentTime = 0;
+                    audio.play().catch(err => console.error(`Audio playback failed for rank ${ranking.rank}: ${err}`));
+                }, sectionIndex * 300);
+            });
+        };
+    </script>
+</body>
+</html>
